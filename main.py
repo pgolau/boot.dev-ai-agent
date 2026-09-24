@@ -29,6 +29,14 @@ def main():
         ],
     )
 
+    if response.usage is not None:
+        print(
+            f"Prompt tokens: {response.usage.prompt_tokens}\n"
+            f"Response tokens: {response.usage.completion_tokens}"
+        )
+    else:
+        raise RuntimeError("API response did not include usage information.")
+
     print(response.choices[0].message.content)
 
 
