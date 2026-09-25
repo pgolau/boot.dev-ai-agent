@@ -24,14 +24,13 @@ def main():
         api_key=api_key,
     )
 
+    messages = [
+        {"role": "user", "content": args.user_prompt},
+    ]
+
     response = client.chat.completions.create(
         model="openrouter/free",
-        messages=[
-            {
-                "role": "user",
-                "content": args.user_prompt,
-            }
-        ],
+        messages=messages,
     )
 
     if response.usage is not None:
