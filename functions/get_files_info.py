@@ -18,10 +18,10 @@ def get_files_info(working_directory: str, directory: str = ".") -> str:
                 f'the permitted working directory'
             )
 
-        if not os.path.isdir(directory):
+        if not os.path.isdir(directory) or not os.path.isdir(target_dir):
             return f'Error: "{directory}" is not a directory'
 
         return f'Success: "{directory}" is within the working directory'
 
-    except Exception as exception:
+    except Exception as exception:  # noqa: BLE001
         return f"Error: {exception}"
