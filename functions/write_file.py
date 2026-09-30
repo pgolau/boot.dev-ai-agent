@@ -31,3 +31,24 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
 
     except Exception as exception:  # noqa: BLE001
         return f"Error: {exception}"
+
+schema_write_file = {
+    "type": "function",
+    "function": {
+        "name": "write_file",
+        "description": "Writes the provided content to a specified file relative to the working directory",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to the file to write, relative to the working directory",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content to write to the file",
+                },
+            },
+        },
+    },
+}
