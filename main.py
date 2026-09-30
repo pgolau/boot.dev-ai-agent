@@ -48,7 +48,7 @@ def generate_content(
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
-        tools=available_functions,
+        tools=available_functions,  # pyright: ignore[reportArgumentType]
         temperature=0,
     )
     if not response.usage:
@@ -63,8 +63,8 @@ def generate_content(
 
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            function_args = json.loads(tool_call.function.arguments or "{}")
-            print(f"Calling function: {tool_call.function.name}({function_args})")
+            function_args = json.loads(tool_call.function.arguments or "{}")  # pyright: ignore[reportAttributeAccessIssue]
+            print(f"Calling function: {tool_call.function.name}({function_args})")  # pyright: ignore[reportAttributeAccessIssue]
     else:
         print(message.content)
 
