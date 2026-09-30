@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from prompts import system_prompt
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI Code Assistant")
@@ -28,6 +30,7 @@ def main() -> None:
         api_key=api_key,
     )
     messages = [
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": args.user_prompt},
     ]
 
@@ -43,6 +46,7 @@ def generate_content(
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        temperature=0,
     )
     if not response.usage:
         raise RuntimeError("API response did not include usage information.")
