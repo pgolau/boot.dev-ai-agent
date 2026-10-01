@@ -1,10 +1,12 @@
 import argparse
 import os
+import sys
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
 from call_function import available_functions, call_function
+from config import MAX_ITERATIONS
 from prompts import system_prompt
 
 
@@ -44,32 +46,48 @@ def generate_content(
     user_prompt: str,
     verbose: bool,
 ) -> None:
-    response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages,
-        tools=available_functions,  # pyright: ignore[reportArgumentType]
-        temperature=0,
+    for _ in range(MAX_ITERATIONS):
+        response = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions,  # pyright: ignore[reportArgumentType]
+            temperature=0,
+        )
+
+        if not response.usage:
+            raise RuntimeError("API response did not include usage information.")
+
+        if verbose:
+            print(f"User prompt: {user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
+
+        message = response.choices[0].message
+
+        messages.append(message)
+
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                result_message = call_function(tool_call, verbose)
+
+                if not result_message.get("content"):
+                    raise RuntimeError(
+                        "Function call returned an empty content message."
+                    )
+
+                if verbose:
+                    print(f"-> {result_message['content']}")
+
+                messages.append(result_message)
+        else:
+            print(message.content)
+            return
+
+    print(
+        "The agent reached the maximum number of iterations "
+        "without producing a final response."
     )
-    if not response.usage:
-        raise RuntimeError("API response did not include usage information.")
-
-    if verbose:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
-
-    message = response.choices[0].message
-
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            result_message = call_function(tool_call, verbose)
-            if not result_message.get("content"):
-                raise RuntimeError("Function call returned an empty content message.")
-
-            if verbose:
-                print(f"-> {result_message['content']}")
-    else:
-        print(message.content)
+    sys.exit(1)
 
 
 if __name__ == "__main__":
