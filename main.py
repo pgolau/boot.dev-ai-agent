@@ -1,11 +1,10 @@
 import argparse
-import json
 import os
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from call_function import available_functions
+from call_function import available_functions, call_function
 from prompts import system_prompt
 
 
@@ -63,8 +62,12 @@ def generate_content(
 
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            function_args = json.loads(tool_call.function.arguments or "{}")  # pyright: ignore[reportAttributeAccessIssue]
-            print(f"Calling function: {tool_call.function.name}({function_args})")  # pyright: ignore[reportAttributeAccessIssue]
+            result_message = call_function(tool_call, verbose)
+            if not result_message.get("content"):
+                raise RuntimeError("Function call returned an empty content message.")
+
+            if verbose:
+                print(f"-> {result_message['content']}")
     else:
         print(message.content)
 
